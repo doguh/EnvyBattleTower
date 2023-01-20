@@ -55,19 +55,24 @@ public class EnvyBattleTower {
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
         this.reloadConfig();
-        this.database = new SimpleHikariDatabase(this.config.getDatabaseDetails());
-        this.leaderboard = Leaderboard.builder(BattleTowerEntry.class)
-                .database(this.database)
-                .cacheDuration(TimeUnit.MINUTES.toMillis(10))
-                .formatter(BattleTowerEntry::fromQuery)
-                .order(Order.DESCENDING)
-                .table("envy_battle_tower_players")
-                .pageSize(10)
-                .build();
-        UtilConcurrency.runAsync(this::createTable);
+        if(this.config.getUseDatabase()) {
+            this.database = new SimpleHikariDatabase(this.config.getDatabaseDetails());
+            this.leaderboard = Leaderboard.builder(BattleTowerEntry.class)
+                    .database(this.database)
+                    .cacheDuration(TimeUnit.MINUTES.toMillis(10))
+                    .formatter(BattleTowerEntry::fromQuery)
+                    .order(Order.DESCENDING)
+                    .table("envy_battle_tower_players")
+                    .pageSize(10)
+                    .build();
+            UtilConcurrency.runAsync(this::createTable);
+        }
     }
 
     private void createTable() {
+        if(!this.config.getUseDatabase()) {
+            return;
+        }
         try (Connection connection = this.getDatabase().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.CREATE_TABLE)) {
             preparedStatement.executeUpdate();

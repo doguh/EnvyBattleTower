@@ -52,6 +52,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         super();
     }
 
+    public boolean getUseDatabase() {
+        return false;
+    }
+
     public SQLDatabaseDetails getDatabaseDetails() {
         return this.databaseDetails;
     }
@@ -174,7 +178,11 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
         public List<Pokemon> getTeam() {
             if (this.team == null) {
-                this.team = PokePasteReader.from(this.paste).build();
+                List<Pokemon> _team = PokePasteReader.from(this.paste).build();
+                if(!this.paste.contains("https://pokepast.es/")) {
+                    return _team;
+                }
+                this.team = _team;
             }
 
             return this.team;

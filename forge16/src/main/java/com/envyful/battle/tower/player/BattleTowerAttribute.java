@@ -161,7 +161,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
                 .rules(this.createRules())
                 .expEnabled(this.manager.getConfig().isAllowExpGain())
-                .allowSpectators(false)
+                .allowSpectators(true)
                 .startHandler(battleStartedEvent -> {})
                 .endHandler(battleEndEvent -> {
                     trainer.remove();
@@ -276,16 +276,18 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     public void finishAttempt() {
         long duration = System.currentTimeMillis() - this.attemptStart;
 
-        try (Connection connection = this.manager.getDatabase().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.ADD_USER_ATTEMPT)) {
-            preparedStatement.setString(1, this.parent.getUuid().toString());
-            preparedStatement.setString(2, this.parent.getName());
-            preparedStatement.setLong(3, this.attemptStart);
-            preparedStatement.setLong(4, duration);
-            preparedStatement.setInt(5, this.currentFloor);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if(this.manager.getConfig().getUseDatabase()) {
+            try (Connection connection = this.manager.getDatabase().getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.ADD_USER_ATTEMPT)) {
+                preparedStatement.setString(1, this.parent.getUuid().toString());
+                preparedStatement.setString(2, this.parent.getName());
+                preparedStatement.setLong(3, this.attemptStart);
+                preparedStatement.setLong(4, duration);
+                preparedStatement.setInt(5, this.currentFloor);
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
         AttemptDetails attempt = new AttemptDetails(this.attemptStart, duration, this.currentFloor);
@@ -305,6 +307,9 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
     @Override
     public void load() {
+        if(!this.manager.getConfig().getUseDatabase()) {
+            return;
+        }
         try (Connection connection = this.manager.getDatabase().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.LOAD_USER_ATTEMPTS)) {
             preparedStatement.setString(1, this.parent.getUuid().toString());
@@ -325,6 +330,9 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
     @Override
     public void save() {
+        if(!this.manager.getConfig().getUseDatabase()) {
+            return;
+        }
         try (Connection connection = this.manager.getDatabase().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.UPDATE_USERNAME)) {
             preparedStatement.setString(1, this.parent.getName());

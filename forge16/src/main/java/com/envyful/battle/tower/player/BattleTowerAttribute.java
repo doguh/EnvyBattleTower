@@ -26,6 +26,7 @@ import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
+import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
 import net.minecraft.world.World;
 
 import java.sql.Connection;
@@ -119,6 +120,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         }
 
         NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
+        trainer.setMegaItem(EnumMegaItemsUnlocked.Mega);
         Pair<BattleTowerConfig.PokePaste, List<Pokemon>> randomLeaderTeam = getRandomLeaderTeam();
 
         if (randomLeaderTeam == null) {
@@ -161,7 +163,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
                 .rules(this.createRules())
                 .expEnabled(this.manager.getConfig().isAllowExpGain())
-                .allowSpectators(true)
+                .allowSpectators(false) // true = no allowed, false = allowed 🤷‍♂️
                 .startHandler(battleStartedEvent -> {})
                 .endHandler(battleEndEvent -> {
                     trainer.remove();

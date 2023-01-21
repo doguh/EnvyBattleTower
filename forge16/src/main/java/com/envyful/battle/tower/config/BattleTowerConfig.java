@@ -7,6 +7,7 @@ import com.envyful.api.config.type.SQLDatabaseDetails;
 import com.envyful.api.config.yaml.AbstractYamlConfig;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
 import com.envyful.api.reforged.pixelmon.PokePasteReader;
+import com.envyful.battle.tower.EnvyBattleTower;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
@@ -178,11 +179,17 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
         public List<Pokemon> getTeam() {
             if (this.team == null) {
-                List<Pokemon> _team = PokePasteReader.from(this.paste).build();
-                if(!this.paste.contains("https://pokepast.es/")) {
-                    return _team;
+                try {
+                    List<Pokemon> _team = PokePasteReader.from(this.paste).build();
+                    if (!this.paste.contains("https://pokepast.es/")) {
+                        return _team;
+                    }
+                    this.team = _team;
+                } catch(Error error) {
+                    EnvyBattleTower.getLogger().error("Could not load valid team from: " + this.paste);
+                    EnvyBattleTower.getLogger().error(error);
+                    return null;
                 }
-                this.team = _team;
             }
 
             return this.team;
